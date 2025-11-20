@@ -104,14 +104,17 @@ if submitted:
         model = genai.GenerativeModel('gemini-2.5-flash') 
 
         prompt = f"""
-      You are a highly specialized and enthusiastic gifting expert focused exclusively on **content creation, streaming, and creative media gear**. Your recommendations must be practical gifts for people who are: Twitch streamers, YouTube vloggers, podcasters, video editors, or digital artists.
+Suggest 5 specific, physical products available on Amazon for this person: '{user_input}'.
 
-Adopt the persona of a tech reviewer:
-1.  **Use specific terminology:** Use words like 'low latency,' 'key light,' 'color temperature,' 'frame rate,' 'dynamic mic,' 'condenser mic,' 'capture card,' 'green screen,' and 'audio interface.'
-2.  **Focus on the beginner/intermediate budget** (items between $30 and $200).
-3.  **Always recommend gear that *improves quality* (audio, video, or workflow).**
-4.  **Always be specific.** If asked for a gift, provide a specific product category (e.g., 'a dedicated stream deck' or 'a desk-mounted boom arm').
-        """
+---
+
+## TASK INSTRUCTIONS:
+1.  **Skip all conversation, greetings, and introductions.**
+2.  **IMMEDIATELY** return the final output based on the user request.
+3.  **Return ONLY the product names** separated by a pipe symbol (|).
+4.  **Do not include numbering or descriptions.**
+5.  Example Format: Product A | Product B | Product C
+"""
 
         # Visual Feedback while waiting
         with st.status("🔍 Analyzing interests...", expanded=True) as status:

@@ -109,11 +109,13 @@ Suggest 5 specific, physical products available on Amazon for this person: '{use
 ---
 
 ## TASK INSTRUCTIONS:
-1.  **Skip all conversation, greetings, and introductions.**
-2.  **IMMEDIATELY** return the final output based on the user request.
-3.  **Return ONLY the product names** separated by a pipe symbol (|).
-4.  **Do not include numbering or descriptions.**
-5.  Example Format: Product A | Product B | Product C
+1.  Skip all conversation, greetings, and introductions.
+2.  IMMEDIATELY return the final output based on the user request.
+3.  **Output Format:** Each product must contain the Name and a brief, expert Description.
+4.  **Use '||' (double pipe) to separate the NAME from the DESCRIPTION.**
+5.  **Use '|' (single pipe) to separate each complete product result.**
+6.  Do not include numbering.
+7.  Example Format: Name || Description | Name || Description | ...
 """
 
         # Visual Feedback while waiting
@@ -125,24 +127,34 @@ Suggest 5 specific, physical products available on Amazon for this person: '{use
             
             try:
                 response = model.generate_content(prompt)
-                gift_ideas = response.text.split('|')
-                status.update(label="✅ Ideas Found!", state="complete", expanded=False)
+                # 1. Split by single pipe '|' to get 5 separate product strings
+                gift_items = [item.strip() for item in response.text.split('|') if item.strip()]
+
+                # Status update remains, but we don't collapse it with expanded=False
+                status.update(label="✅ Ideas Found!", state="complete")
                 
                 st.divider()
-                st.markdown("### 🎯 Top 5 Recommendations")
+                st.markdown("### 🎯 Top 5 Recommendations (Expert Analysis)")
                 
-                # Display results in nice "Cards"
-                for idea in gift_ideas:
-                    idea = idea.strip()
-                    if idea:
-                        search_term = idea.replace(" ", "+")
+                # 2. Iterate through each product string and split by double pipe '||'
+                for item in gift_items:
+                    parts = item.split('||')
+                    
+                    # Ensure we have a Name and a Description before proceeding
+                    if len(parts) == 2:
+                        name = parts[0].strip()
+                        description = parts[1].strip()
+                        
+                        search_term = name.replace(" ", "+")
                         link = f"https://www.amazon.com/s?k={search_term}&tag={AMAZON_TAG}"
                         
-                        # The Card Container
+                        # The Card Container (Enriched)
                         with st.container(border=True):
                             col1, col2 = st.columns([3, 1])
                             with col1:
-                                st.markdown(f"**{idea}**")
+                                st.markdown(f"**{name}**")
+                                # Show the expert description below the title
+                                st.caption(description) 
                             with col2:
                                 st.link_button("👉 View Item", link, use_container_width=True)
                                 

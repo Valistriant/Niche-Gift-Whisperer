@@ -103,6 +103,7 @@ if submitted:
         # Using the new, fast model
         model = genai.GenerativeModel('gemini-2.5-flash') 
 
+        # --- REVISED PROMPT WITH UNIQUE SEPARATOR (---) ---
         prompt = f"""
 Suggest 5 specific, physical products available on Amazon for this person: '{user_input}'.
 
@@ -110,9 +111,10 @@ Suggest 5 specific, physical products available on Amazon for this person: '{use
 
 ## CRITICAL OUTPUT INSTRUCTIONS:
 1.  **DO NOT use any introduction, conversation, code fences (```), numbering, or extra characters.**
-2.  **ONLY** return the raw data string.
-3.  **Output Format MUST be EXACTLY:** Name || Description | Name || Description | ...
-4.  Example Format: Studio Microphone || Clear, crisp audio for beginner podcasters | Boom Arm Stand || Keeps the mic off the desk to reduce vibrations | USB Audio Interface || Essential to connect professional mics for pristine sound | ...
+2.  **Item Separator:** Separate each of the 5 items using ' --- ' (triple hyphen, space, triple hyphen).
+3.  **Name/Description Separator:** Use ' || ' (double pipe, space, double pipe) to separate the item name from its description.
+4.  **Output Format MUST be EXACTLY:** Name || Description --- Name || Description --- Name || Description --- Name || Description --- Name || Description
+5.  Example Format: Studio Microphone || Clear, crisp audio for beginner podcasters --- Boom Arm Stand || Keeps the mic off the desk to reduce vibrations --- USB Audio Interface || Essential to connect professional mics for pristine sound --- ...
 """
 
         # Visual Feedback while waiting
@@ -124,10 +126,13 @@ Suggest 5 specific, physical products available on Amazon for this person: '{use
             
             try:
                 response = model.generate_content(prompt)
+                
                 # --- SAFETY NET: Strip common AI formatting issues ---
+                # This handles any stray backticks or comments from the AI
                 raw_text = response.text.replace("```", "").replace("json", "").strip() 
-                # 1. Split by single pipe '|' to get 5 separate product strings
-                gift_items = [item.strip() for item in raw_text.split('|') if item.strip()]
+                
+                # 1. Split by the new, unique item separator '---'
+                gift_items = [item.strip() for item in raw_text.split('---') if item.strip()]
 
                 # Status update remains, but we don't collapse it with expanded=False
                 status.update(label="✅ Ideas Found!", state="complete")
@@ -135,7 +140,7 @@ Suggest 5 specific, physical products available on Amazon for this person: '{use
                 st.divider()
                 st.markdown("### 🎯 Top 5 Recommendations (Expert Analysis)")
                 
-                # 2. Iterate through each product string and split by double pipe '||'
+                # 2. Iterate through each product string and split by the double pipe '||'
                 for item in gift_items:
                     parts = item.split('||')
                     
